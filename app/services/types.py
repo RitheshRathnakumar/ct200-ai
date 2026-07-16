@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 @dataclass
 class TextBlock:
     """
-    Represents a logical text block extracted from the PDF.
+    Represents one logical text block extracted from the PDF.
     """
 
     text: str
@@ -17,6 +17,8 @@ class TextBlock:
 
     is_bold: bool
     flags: int
+
+    bbox: tuple[float, float, float, float]
 
     level: int = 0
     is_heading: bool = False

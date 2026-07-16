@@ -1,39 +1,76 @@
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
 
 import fitz
 
+from app.services.types import TextBlock
 
-def extract_pages(pdf_path: str) -> list[dict[str, Any]]:
+
+def extract_pages(pdf_path: str) -> list[TextBlock]:
     """
-    Extract text from a PDF page by page.
+    Extract rich text blocks from a PDF.
 
-    Returns:
-        A list of dictionaries containing:
-        - page_number
-        - text
-        - char_count
-        - has_text
+    Each returned TextBlock preserves font metadata,
+    making hierarchy reconstruction easier.
     """
 
-    try:
-        pages: list[dict[str, Any]] = []
+    pdf = Path(pdf_path)
 
-        with fitz.open(pdf_path) as doc:
-            for page_number, page in enumerate(doc, start=1):
-                text = page.get_text()
+    if not pdf.exists():
+        raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-                pages.append(
-                    {
-                        "page_number": page_number,
-                        "text": text,
-                        "char_count": len(text),
-                        "has_text": bool(text.strip()),
-                    }
-                )
+    blocks: list[TextBlock] = []
 
-        return pages
+    with fitz.open(pdf_path) as document:
+        for page_number, page in enumerate(document, start=1):
 
-    except Exception as exc:
-        raise ValueError(f"Unable to open PDF: {pdf_path}") from exc
+            page_dict = page.get_text("dict")
+
+            for block in page_dict["blocks"]:
+
+                # Skip image blocks
+                if "lines" not in block:
+                    continue
+
+                for line in block["lines"]:
+
+                    line_text = ""
+                    font_size = 0.0
+                    font_name = ""
+                    flags = 0
+
+                    for span in line["spans"]:
+
+                        line_text += span["text"]
+
+                        # Keep the largest font size in the line
+                        font_size = max(font_size, span["size"])
+
+                        # Preserve the first span's formatting
+                        if not font_name:
+                            font_name = span["font"]
+                            flags = span["flags"]
+
+                    if not line_text.strip():
+                        continue
+
+                    is_bold = (
+                        "Bold" in font_name
+                        or "bold" in font_name
+                        or (flags & 16) != 0
+                    )
+
+                    blocks.append(
+                        TextBlock(
+                            text=line_text.strip(),
+                            page_number=page_number,
+                            font_size=font_size,
+                            font_name=font_name,
+                            is_bold=is_bold,
+                            flags=flags,
+                            bbox=tuple(block["bbox"]),
+                        )
+                    )
+
+    return blocks
