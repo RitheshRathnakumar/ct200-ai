@@ -20,7 +20,10 @@ class TextBlock:
 
     bbox: tuple[float, float, float, float]
 
+    block_type: str = "paragraph"
+
     level: int = 0
+
     is_heading: bool = False
 
 

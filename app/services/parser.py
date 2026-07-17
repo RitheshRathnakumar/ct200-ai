@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.services.extractor import extract_pages
+from app.services.hierarchy import HierarchyBuilder
 
 
 class PDFParser:
@@ -8,10 +9,13 @@ class PDFParser:
     High-level orchestration for the document ingestion pipeline.
     """
 
+    def __init__(self):
+        self.builder = HierarchyBuilder()
+
     def parse(self, pdf_path: str):
 
-        pages = extract_pages(pdf_path)
+        blocks = extract_pages(pdf_path)
 
-        print(f"Extracted {len(pages)} pages.")
+        tree = self.builder.build(blocks)
 
-        return pages
+        return tree

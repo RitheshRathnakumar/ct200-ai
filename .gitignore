@@ -1,20 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Virtual environments
 venv/
 .venv/
-
-# Python cache
-__pycache__/
-*.py[cod]
-
-# SQLite
-*.db
+env/
 
 # Environment variables
 .env
 
+# SQLite database
+*.db
+*.sqlite3
+
 # VS Code
 .vscode/
 
-# OS files
+# macOS
 .DS_Store
+
+# Windows
 Thumbs.db
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log

@@ -31,9 +31,23 @@ class Node(Base):
         nullable=True,
     )
 
-    # Link to the owning document version.
-    document_version: Mapped["DocumentVersion"] = relationship(back_populates="nodes")
 
     # Self-referencing parent/child hierarchy.
-    parent: Mapped["Node | None"] = relationship(back_populates="children", remote_side="Node.id")
-    children: Mapped[list["Node"]] = relationship(back_populates="parent")
+    # Link to the owning document version.
+    document_version: Mapped["DocumentVersion"] = relationship(
+    back_populates="nodes"
+    )
+
+    # Parent node
+    parent: Mapped["Node | None"] = relationship(
+    "Node",
+    remote_side="Node.id",
+    back_populates="children",
+    )
+
+    # Child nodes
+    children: Mapped[list["Node"]] = relationship(
+    "Node",
+    back_populates="parent",
+    cascade="all, delete-orphan",
+    )
